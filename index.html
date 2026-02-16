@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SKYCLAW 🦀 </title>
+    <title>SKYCLAW 🦀</title>
     
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -19,8 +19,12 @@
             background-color: #050b14;
             color: #ffffff;
             font-family: 'Inter', sans-serif;
-            overflow: hidden;
-            height: 100vh;
+            
+            /* MOBILE FIX: Use dynamic viewport height and allow scrolling */
+            min-height: 100dvh;
+            overflow-x: hidden;
+            overflow-y: auto; 
+            
             display: flex;
             justify-content: center;
             align-items: center;
@@ -29,13 +33,16 @@
 
         /* --- BACKGROUND CANVAS --- */
         #particle-canvas {
-            position: absolute;
+            /* MOBILE FIX: Fixed position keeps it filling the screen */
+            position: fixed; 
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
             z-index: 1;
+            /* Dark Blue Radial Gradient */
             background: radial-gradient(circle at center, #1a4a6e 0%, #02060d 100%);
+            will-change: transform; 
         }
 
         /* --- MAIN CARD --- */
@@ -45,7 +52,8 @@
             text-align: center;
             max-width: 650px;
             width: 90%;
-            padding: 3rem 2rem;
+            padding: 3rem 1.5rem;
+            margin: 20px auto; 
             
             /* Glassmorphism */
             background: rgba(12, 20, 35, 0.65);
@@ -104,11 +112,6 @@
             color: #a0cce8; 
         }
 
-        .active-cursor {
-            border-right-color: #e31c25;
-            animation: blinkCursor 0.75s step-end infinite;
-        }
-
         /* --- BUTTONS --- */
         .button-group {
             display: flex;
@@ -120,10 +123,10 @@
         .btn {
             display: inline-flex;
             align-items: center;
-            justify-content: center; /* Centers content horizontally */
+            justify-content: center; 
             gap: 12px;
             padding: 16px 0;
-            width: 220px; /* Fixed width for equal sizing */
+            width: 220px; 
             border-radius: 50px;
             text-decoration: none;
             font-weight: 700;
@@ -133,10 +136,7 @@
             letter-spacing: 0.5px;
         }
 
-        /* Icon sizing adjustments */
-        .btn i {
-            font-size: 1.2rem;
-        }
+        .btn i { font-size: 1.2rem; }
 
         /* GitHub */
         .btn-github {
@@ -166,7 +166,12 @@
             box-shadow: 0 0 25px rgba(227, 28, 37, 0.6);
         }
 
-        /* --- KEYFRAMES --- */
+        /* --- ANIMATIONS & MOBILE CURSOR --- */
+        .active-cursor {
+            border-right-color: #e31c25;
+            animation: blinkCursor 0.75s step-end infinite;
+        }
+
         @keyframes float {
             0% { transform: translateY(0px); }
             50% { transform: translateY(-15px); }
@@ -180,13 +185,24 @@
             50% { border-color: #e31c25; }
         }
 
-        /* --- MOBILE --- */
+        /* --- MOBILE SCREEN ADJUSTMENTS --- */
         @media (max-width: 480px) {
             .btn { width: 100%; } 
             #line1 { font-size: 0.95rem; }
             #line2 { font-size: 0.85rem; }
-            .type-line { white-space: normal; text-align: center; }
-            .active-cursor { border-right: none; border-bottom: 2px solid #e31c25; }
+            
+            /* Wrap text on small screens */
+            .type-line { 
+                white-space: normal; 
+                text-align: center; 
+                display: inline; 
+            }
+            
+            /* MOBILE CURSOR FIX: Enforce vertical bar, remove any underline */
+            .active-cursor { 
+                border-right: 3px solid #e31c25; 
+                border-bottom: none;
+            }
         }
     </style>
 </head>
@@ -200,8 +216,8 @@
         </div>
         
         <div class="text-area">
-            <div id="line1" class="type-line"></div>
-            <div id="line2" class="type-line"></div>
+            <span id="line1" class="type-line"></span>
+            <span id="line2" class="type-line"></span>
         </div>
 
         <div class="button-group">
@@ -229,7 +245,6 @@
                 element.textContent += text.charAt(i);
                 await new Promise(r => setTimeout(r, typeSpeed));
             }
-
             return element; 
         }
 
@@ -237,12 +252,14 @@
             await new Promise(r => setTimeout(r, 500));
             const el1 = await typeWriter("line1", line1Text);
             el1.classList.remove('active-cursor');
+            
+            await new Promise(r => setTimeout(r, 200));
             await typeWriter("line2", line2Text);
         }
 
         runTypingSequence();
 
-        // --- PARTICLE BACKGROUND ---
+        // --- WHITE PARTICLES BACKGROUND ---
         const canvas = document.getElementById('particle-canvas');
         const ctx = canvas.getContext('2d');
         let particles = [];
@@ -269,7 +286,8 @@
                 if (this.y < 0 || this.y > canvas.height) this.vy *= -1;
             }
             draw() {
-                ctx.fillStyle = 'rgba(43, 159, 217, 0.5)';
+                // CHANGED TO WHITE
+                ctx.fillStyle = 'rgba(255, 255, 255, 0.6)';
                 ctx.beginPath();
                 ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
                 ctx.fill();
@@ -287,12 +305,15 @@
             for (let i = 0; i < particles.length; i++) {
                 particles[i].update();
                 particles[i].draw();
+                
                 for (let j = i; j < particles.length; j++) {
                     const dx = particles[i].x - particles[j].x;
                     const dy = particles[i].y - particles[j].y;
                     const d = Math.sqrt(dx*dx + dy*dy);
+                    
                     if (d < 150) {
-                        ctx.strokeStyle = `rgba(43, 159, 217, ${1 - d/150})`;
+                        // CHANGED TO WHITE LINES
+                        ctx.strokeStyle = `rgba(255, 255, 255, ${0.4 * (1 - d/150)})`;
                         ctx.lineWidth = 0.5;
                         ctx.beginPath();
                         ctx.moveTo(particles[i].x, particles[i].y);
